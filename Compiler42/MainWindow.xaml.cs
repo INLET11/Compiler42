@@ -1,5 +1,8 @@
 ﻿
-// 導入
+// OpenTK公式チュートリアル
+// https://opentk.net/learn/index.html
+
+// WPFへの導入
 // https://qiita.com/sekky0816/items/91bc38b0242494ba9954
 
 using System;
@@ -37,20 +40,45 @@ namespace Compiler42 {
 												 GraphicsMode.Default.Stereo
 												 );
 
-		//コンテキストの作成            
+		//コンテキストの作成
 		GLControl glControl = new GLControl(mode);
 
 		public MainWindow() {
 			InitializeComponent();
 
-			//イベントの追加 
+			//イベントの追加
 			glControl.Load += glControl_Load;
 			glControl.Paint += glControl_Paint;
 			glControl.Resize += glControl_Resize;
-			//ホストの子に設定 
+			//ホストの子に設定
 			glHost.Child = glControl;
 
 		}
+
+		float rx, ry;
+
+		float minDistance = 0.01f;
+		float MaxDistance = 1000f;
+
+		bool CameraRotate = false;
+		Vector2 lastPos;
+
+		Matrix4 proj;
+		Matrix4 look;
+
+		float speed = 0.1f;
+		float Sensitivity = 0.2f;
+
+		float yaw = -90f;   // ヨーとfrontベクトルの初期値は一致させる必要がある
+		float pitch = 0f;
+
+		Vector3 position = new Vector3(0.0f, 0.0f, 3.0f);
+		Vector3 front = new Vector3(0.0f, 0.0f, -1.0f);
+		Vector3 up = new Vector3(0.0f, 1.0f, 0.0f);
+
+		double dpiX, dpiY;
+		int CenterX, CenterY;
+		int MonitorX, MonitorY;
 
 		private void glControl_Load(object sender, EventArgs e) {
 
@@ -61,25 +89,33 @@ namespace Compiler42 {
 
 			// 視体積の設定
 			GL.MatrixMode(MatrixMode.Projection);
-			Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, glControl.AspectRatio, 0.2f, 5);
+			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), glControl.AspectRatio, minDistance, MaxDistance);
 			GL.LoadMatrix(ref proj);
 
 			// 視界の設定
 			GL.MatrixMode(MatrixMode.Modelview);
-			Matrix4 look = Matrix4.LookAt(Vector3.One, new Vector3(0, 0, 0.75f), Vector3.UnitZ);
-			GL.LoadMatrix(ref look);
+
+			SetInitSight();
 
 			// デプスバッファの使用
 			GL.Enable(EnableCap.DepthTest);
 
 			// 光源の使用
 			GL.Enable(EnableCap.Lighting);
+
+//			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 		}
 
 		private void glControl_Resize(object sender, EventArgs e) {
 
-			// ビューポートの設定
 			GL.Viewport(0, 0, glControl.Width, glControl.Height);
+
+			GL.MatrixMode(MatrixMode.Projection);
+			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), glControl.AspectRatio, minDistance, MaxDistance);
+			GL.LoadMatrix(ref proj);
+			GL.MatrixMode(MatrixMode.Modelview);
+
+			SetInitSight();
 		}
 
 		private void glControl_Paint(object sender, System.Windows.Forms.PaintEventArgs e) {
@@ -89,16 +125,25 @@ namespace Compiler42 {
 			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
 			tube(2, 0.1f, 0.1f);
 
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
+			square(1.5f);
+
 			glControl.SwapBuffers();
 		}
 
-		float rx, ry;
+		private void SetInitSight() {
+
+			look = Matrix4.LookAt(position, position + front, up);
+			GL.LoadMatrix(ref look);
+			glControl.Refresh();
+		}
+
 		void tube(float length, float radius1, float radius2) {
 
 			GL.PushMatrix();
 			GL.Begin(PrimitiveType.TriangleStrip);
 			GL.Normal3(Vector3.One);
-			for (int deg = 0; deg <= 360; deg = deg + 3) {
+			for (int deg = 0; deg <= 360; deg = deg + 30) {
 				rx = (float)Math.Cos((float)Math.PI * deg / 180);
 				ry = (float)Math.Sin((float)Math.PI * deg / 180);
 				GL.Vertex3(rx * radius2, ry * radius2, length / 2);
@@ -107,6 +152,101 @@ namespace Compiler42 {
 			}
 			GL.End();
 			GL.PopMatrix();
+
+		}
+
+		void square(float length) {
+
+			GL.PushMatrix();
+			GL.Begin(PrimitiveType.TriangleStrip);
+			GL.Normal3(Vector3.One);
+
+			GL.Vertex2(length, length);
+			GL.Vertex2(-1 * length, length);
+			GL.Vertex2(length, -1 * length);
+			GL.Vertex2(-1 * length, -1 * length);
+
+			GL.End();
+			GL.PopMatrix();
+
+		}
+
+		private void Window_MouseMove(object sender, MouseEventArgs e) {        // WindowsFormHostのプロパティから共通→IsEnabledをOFFにすること
+																				// チェックが入ったままだと描画領域上でマウスイベントが使えない
+			if (CameraRotate) {
+
+				if (yaw > 180f) {
+					yaw -= 360f;
+				} else if (yaw < -180f) {
+					yaw += 360f;
+				} else {
+					yaw += (System.Windows.Forms.Cursor.Position.X - lastPos[0]) * Sensitivity;
+				}
+
+				if (pitch > 89.0f) {
+					pitch = 89.0f;
+				} else if (pitch < -89.0f) {
+					pitch = -89.0f;
+				} else {
+					pitch -= (System.Windows.Forms.Cursor.Position.Y - lastPos[1]) * Sensitivity;
+				}
+
+				lastPos[0] = System.Windows.Forms.Cursor.Position.X;
+				lastPos[1] = System.Windows.Forms.Cursor.Position.Y;
+
+				front[0] = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Cos(MathHelper.DegreesToRadians(yaw));
+				front[1] = (float)Math.Sin(MathHelper.DegreesToRadians(pitch));
+				front[2] = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(yaw));
+
+				front = Vector3.Normalize(front);
+
+				SetInitSight();
+
+//				if (Math.Abs(lastPos[0] - CenterX) > 100 || Math.Abs(lastPos[1] - CenterY) > 100) {
+//					SetCursorPos(CenterX, CenterY);
+//				}
+
+			}
+		}
+
+		private void Window_PreviewKeyDown(Object sender, KeyEventArgs e) {
+
+			switch (e.Key) {
+				case Key.Escape:
+					Close();
+					break;
+				case Key.A:
+					position -= Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+					break;
+				case Key.D:
+					position += Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+					break;
+				case Key.W:
+					position += front * speed;
+					break;
+				case Key.S:
+					position -= front * speed;
+					break;
+				case Key.Up:
+					position += up * speed;
+					break;
+				case Key.Down:
+					position -= up * speed;
+					break;
+				case Key.Space:
+					CameraRotate = !CameraRotate;
+					if (CameraRotate) {
+
+//						SetCursorPos(CenterX, CenterY);
+
+						lastPos[0] = System.Windows.Forms.Cursor.Position.X;
+						lastPos[1] = System.Windows.Forms.Cursor.Position.Y;
+
+					} else {
+					}
+					break;
+			}
+			SetInitSight();
 
 		}
 

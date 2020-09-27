@@ -5,8 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Compiler42"
         mc:Ignorable="d"
+
+		MouseMove="Window_MouseMove"
+		PreviewKeyDown="Window_PreviewKeyDown"
+
         Title="MainWindow" Height="450" Width="800">
 	<Grid>
-		<WindowsFormsHost x:Name="glHost" Margin="18,24,138,89" RenderTransformOrigin="0.5,0.5"/>
+		<WindowsFormsHost x:Name="glHost" Margin="18,21,138,92" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
 	</Grid>
 </Window>
