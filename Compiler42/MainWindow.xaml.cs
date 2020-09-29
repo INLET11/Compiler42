@@ -5,6 +5,12 @@
 // WPFへの導入
 // https://qiita.com/sekky0816/items/91bc38b0242494ba9954
 
+// タイマ
+// https://www.atmarkit.co.jp/ait/articles/1812/12/news014.html
+
+// キーボード取得（リアルタイム）
+// https://www.ipentec.com/document/csharp-check-keboard-key-press-state
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +29,8 @@ using System.Windows.Shapes;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+
+using System.Windows.Threading;
 
 namespace Compiler42 {
 	/// <summary>
@@ -45,6 +53,8 @@ namespace Compiler42 {
 
 		public MainWindow() {
 			InitializeComponent();
+
+			SetupTimer();
 
 			//イベントの追加
 			glControl.Load += glControl_Load;
@@ -95,8 +105,6 @@ namespace Compiler42 {
 			// 視界の設定
 			GL.MatrixMode(MatrixMode.Modelview);
 
-			SetInitSight();
-
 			// デプスバッファの使用
 			GL.Enable(EnableCap.DepthTest);
 
@@ -115,7 +123,6 @@ namespace Compiler42 {
 			GL.LoadMatrix(ref proj);
 			GL.MatrixMode(MatrixMode.Modelview);
 
-			SetInitSight();
 		}
 
 		private void glControl_Paint(object sender, System.Windows.Forms.PaintEventArgs e) {
@@ -135,7 +142,9 @@ namespace Compiler42 {
 
 			look = Matrix4.LookAt(position, position + front, up);
 			GL.LoadMatrix(ref look);
-			glControl.Refresh();
+//			glControl.Refresh();
+
+			glControl.Invalidate();
 		}
 
 		void tube(float length, float radius1, float radius2) {
@@ -200,8 +209,6 @@ namespace Compiler42 {
 
 				front = Vector3.Normalize(front);
 
-				SetInitSight();
-
 //				if (Math.Abs(lastPos[0] - CenterX) > 100 || Math.Abs(lastPos[1] - CenterY) > 100) {
 //					SetCursorPos(CenterX, CenterY);
 //				}
@@ -210,28 +217,10 @@ namespace Compiler42 {
 		}
 
 		private void Window_PreviewKeyDown(Object sender, KeyEventArgs e) {
-
+		
 			switch (e.Key) {
 				case Key.Escape:
 					Close();
-					break;
-				case Key.A:
-					position -= Vector3.Normalize(Vector3.Cross(front, up)) * speed;
-					break;
-				case Key.D:
-					position += Vector3.Normalize(Vector3.Cross(front, up)) * speed;
-					break;
-				case Key.W:
-					position += front * speed;
-					break;
-				case Key.S:
-					position -= front * speed;
-					break;
-				case Key.Up:
-					position += up * speed;
-					break;
-				case Key.Down:
-					position -= up * speed;
 					break;
 				case Key.Space:
 					CameraRotate = !CameraRotate;
@@ -246,8 +235,42 @@ namespace Compiler42 {
 					}
 					break;
 			}
-			SetInitSight();
 
+		}
+
+		private void SetupTimer() {
+			
+			var timer = new DispatcherTimer(DispatcherPriority.Normal) {
+				Interval = TimeSpan.FromSeconds(0.001),						// 更新頻度
+			};
+			
+			timer.Tick += (s, e) => {
+
+				if (Keyboard.IsKeyDown(Key.A)) {
+					position -= Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+				}
+				if (Keyboard.IsKeyDown(Key.D)) {
+					position += Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+				}
+				if (Keyboard.IsKeyDown(Key.W)) {
+					position += front * speed;
+				}
+				if (Keyboard.IsKeyDown(Key.S)) {
+					position -= front * speed;
+				}
+				if (Keyboard.IsKeyDown(Key.Up)) {
+					position += up * speed;
+				}
+				if (Keyboard.IsKeyDown(Key.Down)) {
+					position -= up * speed;
+				}
+
+				SetInitSight();
+
+			};
+
+			timer.Start();
+			this.Closing += (s, e) => timer.Stop();
 		}
 
 	}
