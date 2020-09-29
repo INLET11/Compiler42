@@ -10,9 +10,9 @@
 		PreviewKeyDown="Window_PreviewKeyDown"
 
         Title="MainWindow" Height="450" Width="800">
-	<Grid x:Name="Grid1">
-		<WindowsFormsHost x:Name="glHost" Margin="18,21,138,92" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
-		<Label x:Name="Label1" Content="Label" HorizontalAlignment="Left" Margin="568,241,0,0" VerticalAlignment="Top"/>
+	<Grid x:Name="Grid">
+		<WindowsFormsHost x:Name="glHost" Margin="18,21,52,93" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
+		<Label x:Name="Label1" Content="Label" HorizontalAlignment="Left" Margin="724,387,0,0" VerticalAlignment="Top"/>
 	</Grid>
-	
+
 </Window>

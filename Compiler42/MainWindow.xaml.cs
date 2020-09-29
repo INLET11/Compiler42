@@ -20,7 +20,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
+ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -31,6 +31,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 using System.Windows.Threading;
+// using System.Windows.Forms;
 
 namespace Compiler42 {
 	/// <summary>
@@ -55,6 +56,7 @@ namespace Compiler42 {
 			InitializeComponent();
 
 			SetupTimer();
+			SetupTimer2();
 
 			//イベントの追加
 			glControl.Load += glControl_Load;
@@ -89,6 +91,8 @@ namespace Compiler42 {
 		double dpiX, dpiY;
 		int CenterX, CenterY;
 		int MonitorX, MonitorY;
+
+		int fpsCount;
 
 		private void glControl_Load(object sender, EventArgs e) {
 
@@ -239,11 +243,11 @@ namespace Compiler42 {
 		}
 
 		private void SetupTimer() {
-			
+
 			var timer = new DispatcherTimer(DispatcherPriority.Normal) {
-				Interval = TimeSpan.FromSeconds(0.001),						// 更新頻度
+				Interval = TimeSpan.FromSeconds(0.001),
 			};
-			
+
 			timer.Tick += (s, e) => {
 
 				if (Keyboard.IsKeyDown(Key.A)) {
@@ -267,11 +271,31 @@ namespace Compiler42 {
 
 				SetInitSight();
 
+				fpsCount++;
+
 			};
 
 			timer.Start();
 			this.Closing += (s, e) => timer.Stop();
 		}
+
+		private void SetupTimer2() {
+
+			var timer2 = new DispatcherTimer(DispatcherPriority.Normal) {
+				Interval = TimeSpan.FromSeconds(0.5),
+			};
+
+			timer2.Tick += (s, e) => {
+
+				Label1.Content = "FPS " + fpsCount * 2;
+				fpsCount = 0;
+
+			};
+
+			timer2.Start();
+			this.Closing += (s, e) => timer2.Stop();
+		}
+
 
 	}
 }
