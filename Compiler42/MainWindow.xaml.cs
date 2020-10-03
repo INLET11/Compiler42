@@ -11,6 +11,13 @@
 // キーボード取得（リアルタイム）
 // https://www.ipentec.com/document/csharp-check-keboard-key-press-state
 
+// ラベルをHostより上に描画
+// https://chitoku.jp/programming/draw-wpf-controls-over-hwndhosts
+// https://stackoverflow.com/questions/1600218/how-can-i-move-a-wpf-popup-when-its-anchor-element-moves
+
+// メニュー
+// https://araramistudio.jimdo.com/2019/11/05/c-%E3%81%AEwpf%E3%81%A7%E3%83%A1%E3%83%8B%E3%83%A5%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +27,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
- using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Input;
+//using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -32,6 +39,9 @@ using OpenTK.Graphics.OpenGL;
 
 using System.Windows.Threading;
 // using System.Windows.Forms;
+
+using System.Drawing;
+using System.Windows.Media;
 
 namespace Compiler42 {
 	/// <summary>
@@ -96,7 +106,7 @@ namespace Compiler42 {
 
 		private void glControl_Load(object sender, EventArgs e) {
 
-			GL.ClearColor(Color4.BlanchedAlmond);
+			GL.ClearColor(Color4.Black);
 
 			// ビューポートの設定
 			GL.Viewport(0, 0, glControl.Width, glControl.Height);
@@ -115,7 +125,7 @@ namespace Compiler42 {
 			// 光源の使用
 			GL.Enable(EnableCap.Lighting);
 
-//			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+			//			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 		}
 
 		private void glControl_Resize(object sender, EventArgs e) {
@@ -140,6 +150,7 @@ namespace Compiler42 {
 			square(1.5f);
 
 			glControl.SwapBuffers();
+
 		}
 
 		private void SetInitSight() {
@@ -184,6 +195,18 @@ namespace Compiler42 {
 
 		}
 
+		private void Window_LocationChanged(object sender, EventArgs e) {
+
+			Popup_Move();
+
+		}
+
+		private void Window_SizeChanged(object sender, EventArgs e) {
+
+			Popup_Move();
+
+		}
+
 		private void Window_MouseMove(object sender, MouseEventArgs e) {        // WindowsFormHostのプロパティから共通→IsEnabledをOFFにすること
 																				// チェックが入ったままだと描画領域上でマウスイベントが使えない
 			if (CameraRotate) {
@@ -213,32 +236,62 @@ namespace Compiler42 {
 
 				front = Vector3.Normalize(front);
 
-//				if (Math.Abs(lastPos[0] - CenterX) > 100 || Math.Abs(lastPos[1] - CenterY) > 100) {
-//					SetCursorPos(CenterX, CenterY);
-//				}
+				//				if (Math.Abs(lastPos[0] - CenterX) > 100 || Math.Abs(lastPos[1] - CenterY) > 100) {
+				//					SetCursorPos(CenterX, CenterY);
+				//				}
 
 			}
 		}
 
 		private void Window_PreviewKeyDown(Object sender, KeyEventArgs e) {
-		
+
 			switch (e.Key) {
 				case Key.Escape:
 					Close();
 					break;
 				case Key.Space:
 					CameraRotate = !CameraRotate;
-					if (CameraRotate) {
+					if(this.IsActive){
+						if (CameraRotate) {
 
-//						SetCursorPos(CenterX, CenterY);
+							//							SetCursorPos(CenterX, CenterY);
 
-						lastPos[0] = System.Windows.Forms.Cursor.Position.X;
-						lastPos[1] = System.Windows.Forms.Cursor.Position.Y;
+							lastPos[0] = System.Windows.Forms.Cursor.Position.X;
+							lastPos[1] = System.Windows.Forms.Cursor.Position.Y;
 
-					} else {
+							CameraLabel.Foreground = new SolidColorBrush(Colors.Magenta);
+
+						}else{
+
+							CameraLabel.Foreground = new SolidColorBrush(Colors.Transparent);
+
+						}
+
 					}
+
 					break;
+
 			}
+
+		}
+
+		private void Popup_Move(){
+
+			fpsPop.HorizontalOffset = -1 * this.ActualWidth / 2 + 50;
+			fpsPop.VerticalOffset = -1 * this.ActualHeight / 2 + 50 + 15.96;
+
+			XYZPop.HorizontalOffset = -1 * this.ActualWidth / 2 + 200;
+			XYZPop.VerticalOffset = -1 * this.ActualHeight / 2 + 50 + 15.96;
+
+			CameraPop.HorizontalOffset = this.ActualWidth / 2 - 100;
+			CameraPop.VerticalOffset = this.ActualHeight / 2 - 80 + 15.96;
+
+			fpsPop.HorizontalOffset += 0.001;		// オフセットを動かすことで再描画が可能
+			fpsPop.HorizontalOffset -= 0.001;
+			XYZPop.HorizontalOffset += 0.001;
+			XYZPop.HorizontalOffset -= 0.001;
+			CameraPop.HorizontalOffset += 0.001;
+			CameraPop.HorizontalOffset -= 0.001;
 
 		}
 
@@ -250,26 +303,30 @@ namespace Compiler42 {
 
 			timer.Tick += (s, e) => {
 
-				if (Keyboard.IsKeyDown(Key.A)) {
-					position -= Vector3.Normalize(Vector3.Cross(front, up)) * speed;
-				}
-				if (Keyboard.IsKeyDown(Key.D)) {
-					position += Vector3.Normalize(Vector3.Cross(front, up)) * speed;
-				}
-				if (Keyboard.IsKeyDown(Key.W)) {
-					position += front * speed;
-				}
-				if (Keyboard.IsKeyDown(Key.S)) {
-					position -= front * speed;
-				}
-				if (Keyboard.IsKeyDown(Key.Up)) {
-					position += up * speed;
-				}
-				if (Keyboard.IsKeyDown(Key.Down)) {
-					position -= up * speed;
-				}
+				if (this.IsActive) {
 
-				SetInitSight();
+					if (Keyboard.IsKeyDown(Key.A)) {
+						position -= Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+					}
+					if (Keyboard.IsKeyDown(Key.D)) {
+						position += Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+					}
+					if (Keyboard.IsKeyDown(Key.W)) {
+						position += front * speed;
+					}
+					if (Keyboard.IsKeyDown(Key.S)) {
+						position -= front * speed;
+					}
+					if (Keyboard.IsKeyDown(Key.Up)) {
+						position += up * speed;
+					}
+					if (Keyboard.IsKeyDown(Key.Down)) {
+						position -= up * speed;
+					}
+
+					SetInitSight();
+
+				}
 
 				fpsCount++;
 
@@ -287,15 +344,16 @@ namespace Compiler42 {
 
 			timer2.Tick += (s, e) => {
 
-				Label1.Content = "FPS " + fpsCount * 2;
+				fpsLabel.Content = "FPS " + fpsCount * 2;
+				XYZLabel.Content = "X: " + string.Format("{0:f2}", position[0]) + "  Y: " + string.Format("{0:f2}", position[1]) + "  Z: " + string.Format("{0:f2}", position[2]);
 				fpsCount = 0;
-
 			};
 
 			timer2.Start();
 			this.Closing += (s, e) => timer2.Stop();
+
 		}
 
-
 	}
+
 }

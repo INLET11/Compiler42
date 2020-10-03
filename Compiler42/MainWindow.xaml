@@ -9,10 +9,48 @@
 		MouseMove="Window_MouseMove"
 		PreviewKeyDown="Window_PreviewKeyDown"
 
-        Title="MainWindow" Height="450" Width="800">
-	<Grid x:Name="Grid">
-		<WindowsFormsHost x:Name="glHost" Margin="18,21,52,93" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
-		<Label x:Name="Label1" Content="Label" HorizontalAlignment="Left" Margin="724,387,0,0" VerticalAlignment="Top"/>
-	</Grid>
+		LocationChanged="Window_LocationChanged"
+		SizeChanged="Window_SizeChanged"
 
+		xmlns:winform="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+
+        Title="MainWindow" Height="450" Width="800" MinWidth="400" MinHeight="300" Topmost="True">
+
+
+	<Grid x:Name="Grid" Background="#FFDEDCDC">
+
+		<DockPanel>
+			<Menu DockPanel.Dock="Top" Background="White" Height="434">
+				<MenuItem Header="File">
+					<MenuItem Header="メニュー 1-1"/>
+					<MenuItem Header="メニュー 1-2"/>
+					<MenuItem Header="メニュー 1-3">
+						<MenuItem Header="メニュー 1-3-1"/>
+						<MenuItem Header="メニュー 1-3-2"/>
+					</MenuItem>
+				</MenuItem>
+				<MenuItem Header="Edit">
+					<MenuItem Header="メニュー 1-1"/>
+					<MenuItem Header="メニュー 1-2"/>
+					<MenuItem Header="メニュー 1-3">
+					</MenuItem>
+				</MenuItem>
+			</Menu>
+
+		</DockPanel>
+
+		<WindowsFormsHost x:Name="glHost" Margin="1,83,1,24" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
+
+		<Popup x:Name="fpsPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
+			<Label x:Name="fpsLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Magenta" FontSize="15" FontFamily="Meiryo"/>
+		</Popup>
+		<Popup x:Name="XYZPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
+			<Label x:Name="XYZLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Magenta" FontSize="15" FontFamily="Meiryo"/>
+		</Popup>
+		<Popup x:Name="CameraPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
+			<Label x:Name="CameraLabel" Content="Camera mode" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Transparent" FontSize="15" FontFamily="Meiryo"/>
+		</Popup>
+		<Label x:Name="Label1" Content="Label" HorizontalAlignment="Left" Margin="536,10,0,0" VerticalAlignment="Top"/>
+		<Label x:Name="Label2" Content="Label" HorizontalAlignment="Left" Margin="497,36,0,0" VerticalAlignment="Top"/>
+	</Grid>
 </Window>
