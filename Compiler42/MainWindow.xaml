@@ -14,13 +14,13 @@
 
 		xmlns:winform="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
 
-        Title="MainWindow" Height="450" Width="800" MinWidth="400" MinHeight="300" Topmost="True">
+        Title="Compiler42" Height="450" Width="800" MinWidth="400" MinHeight="300" Topmost="True">
 
 
 	<Grid x:Name="Grid" Background="#FFDEDCDC">
 
 		<DockPanel>
-			<Menu DockPanel.Dock="Top" Background="White" Height="434">
+			<Menu DockPanel.Dock="Top" Background="White">
 				<MenuItem Header="File">
 					<MenuItem Header="メニュー 1-1"/>
 					<MenuItem Header="メニュー 1-2"/>
@@ -52,5 +52,10 @@
 		</Popup>
 		<Label x:Name="Label1" Content="Label" HorizontalAlignment="Left" Margin="536,10,0,0" VerticalAlignment="Top"/>
 		<Label x:Name="Label2" Content="Label" HorizontalAlignment="Left" Margin="497,36,0,0" VerticalAlignment="Top"/>
+		<Label x:Name="Label3" Content="Label" HorizontalAlignment="Left" Margin="536,62,0,0" VerticalAlignment="Top"/>
+		<Label x:Name="Label4" Content="Label" HorizontalAlignment="Left" Margin="579,36,0,0" VerticalAlignment="Top"/>
+		<Label x:Name="Label5" Content="Label" HorizontalAlignment="Left" Margin="640,10,0,0" VerticalAlignment="Top"/>
+		<Label x:Name="Label6" Content="Label" HorizontalAlignment="Left" Margin="640,36,0,0" VerticalAlignment="Top"/>
+		<Label x:Name="Label7" Content="Label" HorizontalAlignment="Left" Margin="640,62,0,0" VerticalAlignment="Top"/>
 	</Grid>
 </Window>

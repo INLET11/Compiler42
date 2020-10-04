@@ -18,6 +18,15 @@
 // メニュー
 // https://araramistudio.jimdo.com/2019/11/05/c-%E3%81%AEwpf%E3%81%A7%E3%83%A1%E3%83%8B%E3%83%A5%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%99%E3%82%8B/
 
+// dpi
+// https://slash-mochi.net/?p=3370
+
+// 最大化時のサイズ取得
+// https://araramistudio.jimdo.com/2016/11/10/c-%E3%81%A7%E7%94%BB%E9%9D%A2%E3%81%AE%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B/
+
+// ウィンドウの最大化判断
+// https://stackoverflow.com/questions/6071372/maximize-wpf-window-on-the-current-screen
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +52,8 @@ using System.Windows.Threading;
 using System.Drawing;
 using System.Windows.Media;
 
+using System.Runtime.InteropServices;
+
 namespace Compiler42 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
@@ -61,6 +72,10 @@ namespace Compiler42 {
 
 		//コンテキストの作成
 		GLControl glControl = new GLControl(mode);
+
+		[DllImport("User32.dll")]
+		private static extern bool SetCursorPos(int X, int Y);
+
 
 		public MainWindow() {
 			InitializeComponent();
@@ -100,9 +115,13 @@ namespace Compiler42 {
 
 		double dpiX, dpiY;
 		int CenterX, CenterY;
-		int MonitorX, MonitorY;
+
+		PresentationSource MainWindowPresentationSource;
+		Matrix m;
 
 		int fpsCount;
+
+		bool ReverseFlag;
 
 		private void glControl_Load(object sender, EventArgs e) {
 
@@ -125,7 +144,15 @@ namespace Compiler42 {
 			// 光源の使用
 			GL.Enable(EnableCap.Lighting);
 
-			//			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+//			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+
+			System.Windows.Window MainWindow = System.Windows.Application.Current.MainWindow;
+			MainWindowPresentationSource = PresentationSource.FromVisual(MainWindow);
+			m = MainWindowPresentationSource.CompositionTarget.TransformToDevice;
+
+			dpiX = m.M11;
+			dpiY = m.M22;
 		}
 
 		private void glControl_Resize(object sender, EventArgs e) {
@@ -198,12 +225,14 @@ namespace Compiler42 {
 		private void Window_LocationChanged(object sender, EventArgs e) {
 
 			Popup_Move();
+			Get_Center();
 
 		}
 
 		private void Window_SizeChanged(object sender, EventArgs e) {
 
 			Popup_Move();
+			Get_Center();
 
 		}
 
@@ -211,20 +240,28 @@ namespace Compiler42 {
 																				// チェックが入ったままだと描画領域上でマウスイベントが使えない
 			if (CameraRotate) {
 
-				if (yaw > 180f) {
-					yaw -= 360f;
-				} else if (yaw < -180f) {
-					yaw += 360f;
-				} else {
-					yaw += (System.Windows.Forms.Cursor.Position.X - lastPos[0]) * Sensitivity;
-				}
+				if(!ReverseFlag){
 
-				if (pitch > 89.0f) {
-					pitch = 89.0f;
-				} else if (pitch < -89.0f) {
-					pitch = -89.0f;
-				} else {
-					pitch -= (System.Windows.Forms.Cursor.Position.Y - lastPos[1]) * Sensitivity;
+					if (yaw > 180f) {
+						yaw -= 360f;
+					} else if (yaw < -180f) {
+						yaw += 360f;
+					} else {
+						yaw += (System.Windows.Forms.Cursor.Position.X - lastPos[0]) * Sensitivity;
+					}
+
+					if (pitch > 89.0f) {
+						pitch = 89.0f;
+					} else if (pitch < -89.0f) {
+						pitch = -89.0f;
+					} else {
+						pitch -= (System.Windows.Forms.Cursor.Position.Y - lastPos[1]) * Sensitivity;
+					}
+
+				}else{
+
+					ReverseFlag = false;
+
 				}
 
 				lastPos[0] = System.Windows.Forms.Cursor.Position.X;
@@ -236,9 +273,10 @@ namespace Compiler42 {
 
 				front = Vector3.Normalize(front);
 
-				//				if (Math.Abs(lastPos[0] - CenterX) > 100 || Math.Abs(lastPos[1] - CenterY) > 100) {
-				//					SetCursorPos(CenterX, CenterY);
-				//				}
+				if (Math.Abs(lastPos[0] - CenterX) > 100 || Math.Abs(lastPos[1] - CenterY) > 100) {
+					ReverseFlag = true;
+					SetCursorPos(CenterX, CenterY);
+				}
 
 			}
 		}
@@ -254,7 +292,7 @@ namespace Compiler42 {
 					if(this.IsActive){
 						if (CameraRotate) {
 
-							//							SetCursorPos(CenterX, CenterY);
+							SetCursorPos(CenterX, CenterY);
 
 							lastPos[0] = System.Windows.Forms.Cursor.Position.X;
 							lastPos[1] = System.Windows.Forms.Cursor.Position.Y;
@@ -294,6 +332,24 @@ namespace Compiler42 {
 			CameraPop.HorizontalOffset -= 0.001;
 
 		}
+
+		private void Get_Center() {
+
+			if(this.WindowState == System.Windows.WindowState.Maximized) {																								// 最大化してもthis.LeftとTopは小さい状態での値を返すため一手間必要
+
+				System.Drawing.Rectangle rect = new System.Drawing.Rectangle((int)this.Left, (int)this.Top, (int)this.ActualWidth, (int)this.ActualHeight);				// WPFはフォームと異なり現在のディスプレイサイズを得られないため，ダミーの四角形を作ってその座標を得ることで求める
+				System.Windows.Forms.Screen screenData = System.Windows.Forms.Screen.FromRectangle(rect);
+				
+				CenterX = Convert.ToInt32((this.ActualWidth / 2 + glHost.Margin.Left / 2 - glHost.Margin.Right / 2) * dpiX + screenData.WorkingArea.Left);
+				CenterY = Convert.ToInt32((this.ActualHeight / 2 + glHost.Margin.Top / 2 - glHost.Margin.Bottom / 2) * dpiY + screenData.WorkingArea.Top + 15.96);
+
+			} else{
+				CenterX = Convert.ToInt32((this.Left + this.ActualWidth / 2 + glHost.Margin.Left / 2 - glHost.Margin.Right / 2) * dpiX);
+				CenterY = Convert.ToInt32((this.Top + this.ActualHeight / 2 + glHost.Margin.Top / 2 - glHost.Margin.Bottom / 2) * dpiY + 15.96);
+			}			
+
+		}
+
 
 		private void SetupTimer() {
 
