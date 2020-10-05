@@ -144,7 +144,7 @@ namespace Compiler42 {
 			// 光源の使用
 			GL.Enable(EnableCap.Lighting);
 
-//			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
 
 			System.Windows.Window MainWindow = System.Windows.Application.Current.MainWindow;
@@ -299,9 +299,13 @@ namespace Compiler42 {
 
 							CameraLabel.Foreground = new SolidColorBrush(Colors.Magenta);
 
+							this.Cursor = Cursors.None;
+
 						}else{
 
 							CameraLabel.Foreground = new SolidColorBrush(Colors.Transparent);
+
+							this.Cursor = Cursors.Arrow;
 
 						}
 
