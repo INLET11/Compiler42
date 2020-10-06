@@ -73,6 +73,7 @@ namespace Compiler42 {
 		//コンテキストの作成
 		GLControl glControl = new GLControl(mode);
 
+
 		[DllImport("User32.dll")]
 		private static extern bool SetCursorPos(int X, int Y);
 
@@ -84,9 +85,9 @@ namespace Compiler42 {
 			SetupTimer2();
 
 			//イベントの追加
-			glControl.Load += glControl_Load;
-			glControl.Paint += glControl_Paint;
-			glControl.Resize += glControl_Resize;
+			//			glControl.Load += glControl_Load;
+			//			glControl.Paint += glControl_Paint;
+			//			glControl.Resize += glControl_Resize;
 			//ホストの子に設定
 			glHost.Child = glControl;
 
@@ -182,9 +183,9 @@ namespace Compiler42 {
 
 		private void SetInitSight() {
 
-			look = Matrix4.LookAt(position, position + front, up);
-			GL.LoadMatrix(ref look);
-//			glControl.Refresh();
+			//			look = Matrix4.LookAt(position, position + front, up);
+			//			GL.LoadMatrix(ref look);
+			//			glControl.Refresh();
 
 			glControl.Invalidate();
 		}
@@ -222,6 +223,62 @@ namespace Compiler42 {
 
 		}
 
+		private void draw() {
+
+			GL.ClearColor(Color4.Black);
+
+			GL.Viewport(0, 0, glControl.Width, glControl.Height);
+
+			GL.MatrixMode(MatrixMode.Projection);
+			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), glControl.AspectRatio, minDistance, MaxDistance);
+			GL.LoadMatrix(ref proj);
+
+			GL.MatrixMode(MatrixMode.Modelview);
+
+			GL.Enable(EnableCap.DepthTest);
+
+			GL.Enable(EnableCap.Lighting);
+
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+			GL.ClearStencil(0);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
+			tube(2, 0.1f, 0.1f);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
+			square(1.5f);
+
+			look = Matrix4.LookAt(position, position + front, up);
+			GL.LoadMatrix(ref look);
+
+
+
+
+			GL.Viewport(glControl.Width / 2, glControl.Height / 2, glControl.Width / 2, glControl.Height / 2);
+
+			GL.MatrixMode(MatrixMode.Projection);
+			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), glControl.AspectRatio, minDistance, MaxDistance);
+			GL.LoadMatrix(ref proj);
+
+			GL.MatrixMode(MatrixMode.Modelview);
+
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
+			tube(2, 0.1f, 0.1f);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
+			square(1.5f);
+
+			look = Matrix4.LookAt(position, position + front, up);
+			GL.LoadMatrix(ref look);
+
+			glControl.SwapBuffers();
+		}
+
 		private void Window_LocationChanged(object sender, EventArgs e) {
 
 			Popup_Move();
@@ -240,7 +297,7 @@ namespace Compiler42 {
 																				// チェックが入ったままだと描画領域上でマウスイベントが使えない
 			if (CameraRotate) {
 
-				if(!ReverseFlag){
+				if (!ReverseFlag) {
 
 					if (yaw > 180f) {
 						yaw -= 360f;
@@ -258,7 +315,7 @@ namespace Compiler42 {
 						pitch -= (System.Windows.Forms.Cursor.Position.Y - lastPos[1]) * Sensitivity;
 					}
 
-				}else{
+				} else {
 
 					ReverseFlag = false;
 
@@ -289,7 +346,7 @@ namespace Compiler42 {
 					break;
 				case Key.Space:
 					CameraRotate = !CameraRotate;
-					if(this.IsActive){
+					if (this.IsActive) {
 						if (CameraRotate) {
 
 							SetCursorPos(CenterX, CenterY);
@@ -301,7 +358,7 @@ namespace Compiler42 {
 
 							this.Cursor = Cursors.None;
 
-						}else{
+						} else {
 
 							CameraLabel.Foreground = new SolidColorBrush(Colors.Transparent);
 
@@ -317,7 +374,7 @@ namespace Compiler42 {
 
 		}
 
-		private void Popup_Move(){
+		private void Popup_Move() {
 
 			fpsPop.HorizontalOffset = -1 * this.ActualWidth / 2 + 50;
 			fpsPop.VerticalOffset = -1 * this.ActualHeight / 2 + 50 + 15.96;
@@ -328,7 +385,7 @@ namespace Compiler42 {
 			CameraPop.HorizontalOffset = this.ActualWidth / 2 - 100;
 			CameraPop.VerticalOffset = this.ActualHeight / 2 - 80 + 15.96;
 
-			fpsPop.HorizontalOffset += 0.001;		// オフセットを動かすことで再描画が可能
+			fpsPop.HorizontalOffset += 0.001;       // オフセットを動かすことで再描画が可能
 			fpsPop.HorizontalOffset -= 0.001;
 			XYZPop.HorizontalOffset += 0.001;
 			XYZPop.HorizontalOffset -= 0.001;
@@ -339,18 +396,18 @@ namespace Compiler42 {
 
 		private void Get_Center() {
 
-			if(this.WindowState == System.Windows.WindowState.Maximized) {																								// 最大化してもthis.LeftとTopは小さい状態での値を返すため一手間必要
+			if (this.WindowState == System.Windows.WindowState.Maximized) {                                                                                             // 最大化してもthis.LeftとTopは小さい状態での値を返すため一手間必要
 
-				System.Drawing.Rectangle rect = new System.Drawing.Rectangle((int)this.Left, (int)this.Top, (int)this.ActualWidth, (int)this.ActualHeight);				// WPFはフォームと異なり現在のディスプレイサイズを得られないため，ダミーの四角形を作ってその座標を得ることで求める
+				System.Drawing.Rectangle rect = new System.Drawing.Rectangle((int)this.Left, (int)this.Top, (int)this.ActualWidth, (int)this.ActualHeight);             // WPFはフォームと異なり現在のディスプレイサイズを得られないため，ダミーの四角形を作ってその座標を得ることで求める
 				System.Windows.Forms.Screen screenData = System.Windows.Forms.Screen.FromRectangle(rect);
-				
+
 				CenterX = Convert.ToInt32((this.ActualWidth / 2 + glHost.Margin.Left / 2 - glHost.Margin.Right / 2) * dpiX + screenData.WorkingArea.Left);
 				CenterY = Convert.ToInt32((this.ActualHeight / 2 + glHost.Margin.Top / 2 - glHost.Margin.Bottom / 2) * dpiY + screenData.WorkingArea.Top + 15.96);
 
-			} else{
+			} else {
 				CenterX = Convert.ToInt32((this.Left + this.ActualWidth / 2 + glHost.Margin.Left / 2 - glHost.Margin.Right / 2) * dpiX);
 				CenterY = Convert.ToInt32((this.Top + this.ActualHeight / 2 + glHost.Margin.Top / 2 - glHost.Margin.Bottom / 2) * dpiY + 15.96);
-			}			
+			}
 
 		}
 
@@ -389,6 +446,8 @@ namespace Compiler42 {
 				}
 
 				fpsCount++;
+
+				draw();
 
 			};
 
