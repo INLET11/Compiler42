@@ -22,17 +22,39 @@
 		<DockPanel>
 			<Menu DockPanel.Dock="Top" Background="White">
 				<MenuItem Header="File">
-					<MenuItem Header="メニュー 1-1"/>
-					<MenuItem Header="メニュー 1-2"/>
-					<MenuItem Header="メニュー 1-3">
-						<MenuItem Header="メニュー 1-3-1"/>
-						<MenuItem Header="メニュー 1-3-2"/>
-					</MenuItem>
+					<MenuItem Header="New..."/>
+					<MenuItem Header="Open..."/>
+					<MenuItem Header="Save"/>
+					<MenuItem Header="Save As..."/>
+					<Separator/>
+					<MenuItem Header="Exit"/>
 				</MenuItem>
 				<MenuItem Header="Edit">
-					<MenuItem Header="メニュー 1-1"/>
-					<MenuItem Header="メニュー 1-2"/>
-					<MenuItem Header="メニュー 1-3">
+					<MenuItem Header="Undo"/>
+					<MenuItem Header="Redo"/>
+					<Separator/>
+					<MenuItem Header="Delete"/>
+					<MenuItem Header="Clone"/>
+				</MenuItem>
+				<MenuItem Header="View">
+					<MenuItem Header="Show Raw map"/>
+					<MenuItem Header="Show Grid"/>
+					<MenuItem Header="Show Details"/>
+					<MenuItem Header="Show Objects"/>
+					<Separator/>
+					<MenuItem Header="In game map Preview"/>
+				</MenuItem>
+				<MenuItem Header="Mode">
+					<MenuItem Header="Height"/>
+					<MenuItem Header="Texture"/>
+					<MenuItem Header="Material"/>
+					<MenuItem Header="Object"/>
+				</MenuItem>
+				<MenuItem Header="Setting">
+					<MenuItem Header="Directories..."/>
+					<MenuItem Header="Languages">
+						<MenuItem Header="English"/>
+						<MenuItem Header="Japanese"/>
 					</MenuItem>
 				</MenuItem>
 			</Menu>
