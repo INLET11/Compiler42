@@ -27,6 +27,13 @@
 // ウィンドウの最大化判断
 // https://stackoverflow.com/questions/6071372/maximize-wpf-window-on-the-current-screen
 
+// ワイヤーフレーム・面表示
+// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glPolygonMode.xhtml
+
+// 透視投影・平行投影
+// http://wisdom.sakura.ne.jp/system/opengl/gl12.html
+
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,6 +83,9 @@ namespace Compiler42 {
 		[DllImport("User32.dll")]
 		private static extern bool SetCursorPos(int X, int Y);
 
+		PresentationSource MainWindowPresentationSource;
+		Matrix m;
+
 
 		public MainWindow() {
 			InitializeComponent();
@@ -83,11 +93,10 @@ namespace Compiler42 {
 			SetupTimer();
 			SetupTimer2();
 
-			//イベントの追加
 			glControl.Load += glControl_Load;
-			glControl.Paint += glControl_Paint;
-			glControl.Resize += glControl_Resize;
-			//ホストの子に設定
+//			glControl.Paint += glControl_Paint;
+//			glControl.Resize += glControl_Resize;
+			
 			glHost.Child = glControl;
 
 		}
@@ -102,22 +111,25 @@ namespace Compiler42 {
 
 		Matrix4 proj;
 		Matrix4 look;
+		Matrix4 lookCubeMap;
+		Matrix4 lookMap;
 
 		float speed = 0.1f;
 		float Sensitivity = 0.2f;
 
-		float yaw = -90f;   // ヨーとfrontベクトルの初期値は一致させる必要がある
+		float yaw = 90f;   // ヨーとfrontベクトルの初期値は一致させる必要がある
 		float pitch = 0f;
 
-		Vector3 position = new Vector3(0.0f, 0.0f, 3.0f);
-		Vector3 front = new Vector3(0.0f, 0.0f, -1.0f);
+		Vector3 position = new Vector3(0.0f, 0.0f, -3.0f);
+		Vector3 front = new Vector3(0.0f, 0.0f, 1.0f);
 		Vector3 up = new Vector3(0.0f, 1.0f, 0.0f);
 
 		double dpiX, dpiY;
 		int CenterX, CenterY;
 
-		PresentationSource MainWindowPresentationSource;
-		Matrix m;
+		int MapViewSize;
+
+		
 
 		int fpsCount;
 
@@ -125,34 +137,13 @@ namespace Compiler42 {
 
 		private void glControl_Load(object sender, EventArgs e) {
 
-			GL.ClearColor(Color4.Black);
-
-			// ビューポートの設定
-			GL.Viewport(0, 0, glControl.Width, glControl.Height);
-
-			// 視体積の設定
-			GL.MatrixMode(MatrixMode.Projection);
-			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), glControl.AspectRatio, minDistance, MaxDistance);
-			GL.LoadMatrix(ref proj);
-
-			// 視界の設定
-			GL.MatrixMode(MatrixMode.Modelview);
-
-			// デプスバッファの使用
-			GL.Enable(EnableCap.DepthTest);
-
-			// 光源の使用
-			GL.Enable(EnableCap.Lighting);
-
-			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-
-
 			System.Windows.Window MainWindow = System.Windows.Application.Current.MainWindow;
 			MainWindowPresentationSource = PresentationSource.FromVisual(MainWindow);
 			m = MainWindowPresentationSource.CompositionTarget.TransformToDevice;
 
 			dpiX = m.M11;
 			dpiY = m.M22;
+
 		}
 
 		private void glControl_Resize(object sender, EventArgs e) {
@@ -180,13 +171,75 @@ namespace Compiler42 {
 
 		}
 
-		private void SetInitSight() {
+		private void Draw(){
+
+			GL.ClearColor(Color4.Black);
+
+			// メイン画面
 
 			look = Matrix4.LookAt(position, position + front, up);
 			GL.LoadMatrix(ref look);
-//			glControl.Refresh();
 
-			glControl.Invalidate();
+			GL.MatrixMode(MatrixMode.Modelview);
+
+			GL.Enable(EnableCap.DepthTest);
+
+			GL.Enable(EnableCap.Lighting);
+
+//			GL.ClearStencil(0);
+
+			GL.Viewport(0, 0, glControl.Width, glControl.Height);
+
+			GL.MatrixMode(MatrixMode.Projection);       // 透視投影
+			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), glControl.AspectRatio, minDistance, MaxDistance);
+			GL.LoadMatrix(ref proj);
+
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
+			tube(2, 0.1f, 0.1f);
+
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
+			square(1.5f);
+
+			for (int n = 0; n < 10000; n++) {
+//				square(n);
+			}
+
+
+			// マップ表示
+
+
+			MapViewSize = Convert.ToInt32(glControl.Height * 0.75);
+
+			GL.Viewport(glControl.Width - 20 - MapViewSize, glControl.Height - 20 - MapViewSize, MapViewSize, MapViewSize);
+
+			GL.MatrixMode(MatrixMode.Projection);		// 平行投影
+			proj = Matrix4.CreateOrthographic(5f,5f, -10000f, 10000f);
+			GL.LoadMatrix(ref proj);
+			GL.MatrixMode(MatrixMode.Modelview);
+
+			lookMap = Matrix4.LookAt(0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f);
+			GL.LoadMatrix(ref lookMap);
+
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
+			tube(2, 0.1f, 0.1f);
+
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
+			square(1.5f);
+
+			
+
+			glControl.SwapBuffers();
+
 		}
 
 		void tube(float length, float radius1, float radius2) {
@@ -242,20 +295,20 @@ namespace Compiler42 {
 
 				if(!ReverseFlag){
 
+					yaw += (System.Windows.Forms.Cursor.Position.X - lastPos[0]) * Sensitivity;
+
 					if (yaw > 180f) {
 						yaw -= 360f;
 					} else if (yaw < -180f) {
 						yaw += 360f;
-					} else {
-						yaw += (System.Windows.Forms.Cursor.Position.X - lastPos[0]) * Sensitivity;
 					}
+
+					pitch -= (System.Windows.Forms.Cursor.Position.Y - lastPos[1]) * Sensitivity;
 
 					if (pitch > 89.0f) {
 						pitch = 89.0f;
 					} else if (pitch < -89.0f) {
 						pitch = -89.0f;
-					} else {
-						pitch -= (System.Windows.Forms.Cursor.Position.Y - lastPos[1]) * Sensitivity;
 					}
 
 				}else{
@@ -313,6 +366,10 @@ namespace Compiler42 {
 
 					break;
 
+				case Key.M:
+					
+					break;
+
 			}
 
 		}
@@ -358,7 +415,7 @@ namespace Compiler42 {
 		private void SetupTimer() {
 
 			var timer = new DispatcherTimer(DispatcherPriority.Normal) {
-				Interval = TimeSpan.FromSeconds(0.001),
+				Interval = TimeSpan.FromSeconds(0.01),
 			};
 
 			timer.Tick += (s, e) => {
@@ -384,11 +441,11 @@ namespace Compiler42 {
 						position -= up * speed;
 					}
 
-					SetInitSight();
-
 				}
 
 				fpsCount++;
+
+				Draw();
 
 			};
 

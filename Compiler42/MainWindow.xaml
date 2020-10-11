@@ -51,17 +51,22 @@
 					<MenuItem Header="Object"/>
 				</MenuItem>
 				<MenuItem Header="Setting">
+					<MenuItem Header="Draw Setting..."/>
+					<Separator/>
 					<MenuItem Header="Directories..."/>
 					<MenuItem Header="Languages">
 						<MenuItem Header="English"/>
 						<MenuItem Header="Japanese"/>
 					</MenuItem>
 				</MenuItem>
+				<MenuItem Header="Help">
+					<MenuItem Header="Key Reference..."/>
+				</MenuItem>
 			</Menu>
 
 		</DockPanel>
 
-		<WindowsFormsHost x:Name="glHost" Margin="1,83,1,24" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
+		<WindowsFormsHost x:Name="glHost" Margin="1,53,1,33" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
 
 		<Popup x:Name="fpsPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
 			<Label x:Name="fpsLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Magenta" FontSize="15" FontFamily="Meiryo"/>
@@ -72,12 +77,5 @@
 		<Popup x:Name="CameraPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
 			<Label x:Name="CameraLabel" Content="Camera mode" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Transparent" FontSize="15" FontFamily="Meiryo"/>
 		</Popup>
-		<Label x:Name="Label1" Content="Label" HorizontalAlignment="Left" Margin="536,10,0,0" VerticalAlignment="Top"/>
-		<Label x:Name="Label2" Content="Label" HorizontalAlignment="Left" Margin="497,36,0,0" VerticalAlignment="Top"/>
-		<Label x:Name="Label3" Content="Label" HorizontalAlignment="Left" Margin="536,62,0,0" VerticalAlignment="Top"/>
-		<Label x:Name="Label4" Content="Label" HorizontalAlignment="Left" Margin="579,36,0,0" VerticalAlignment="Top"/>
-		<Label x:Name="Label5" Content="Label" HorizontalAlignment="Left" Margin="640,10,0,0" VerticalAlignment="Top"/>
-		<Label x:Name="Label6" Content="Label" HorizontalAlignment="Left" Margin="640,36,0,0" VerticalAlignment="Top"/>
-		<Label x:Name="Label7" Content="Label" HorizontalAlignment="Left" Margin="640,62,0,0" VerticalAlignment="Top"/>
 	</Grid>
 </Window>
