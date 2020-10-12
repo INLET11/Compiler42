@@ -33,6 +33,17 @@
 // 透視投影・平行投影
 // http://wisdom.sakura.ne.jp/system/opengl/gl12.html
 
+// Zバッファで複数viewportの干渉を防ぐ
+// https://stackoverflow.com/questions/13710791/multiple-viewports-interfering
+
+// Z-fighting対策（未使用）
+// https://stackoverflow.com/questions/6892489/how-to-get-the-rid-of-the-z-fighting-problem-in-opengl
+
+// 対数Zバッファ（長距離の描画に使うかも）
+// https://www.gamasutra.com/blogs/BranoKemen/20090812/2725/Logarithmic_ZBuffer.php
+
+// キューブマップ
+
 
 using System;
 using System.Collections.Generic;
@@ -69,7 +80,7 @@ namespace Compiler42 {
 
 		static GraphicsMode mode = new GraphicsMode(
 												 GraphicsMode.Default.ColorFormat,
-												 GraphicsMode.Default.Depth,
+												 GraphicsMode.Default.Depth,				// 何bitかによってz-fightingが起こりそうだけど大丈夫？
 												 8,//GraphicsMode.Default.Stencil,
 												 8,//GraphicsMode.Default.Samples,
 												 GraphicsMode.Default.AccumulatorFormat,
@@ -114,8 +125,10 @@ namespace Compiler42 {
 		Matrix4 lookCubeMap;
 		Matrix4 lookMap;
 
-		float speed = 0.1f;
+		float Speed = 0.1f;
 		float Sensitivity = 0.2f;
+
+		float ActSpeed;
 
 		float yaw = 90f;   // ヨーとfrontベクトルの初期値は一致させる必要がある
 		float pitch = 0f;
@@ -134,6 +147,7 @@ namespace Compiler42 {
 		int fpsCount;
 
 		bool ReverseFlag;
+
 
 		private void glControl_Load(object sender, EventArgs e) {
 
@@ -173,56 +187,55 @@ namespace Compiler42 {
 
 		private void Draw(){
 
+			MapViewSize = Convert.ToInt32(glControl.Height * 0.75);
+
 			GL.ClearColor(Color4.Black);
-
+			
 			// メイン画面
-
-			look = Matrix4.LookAt(position, position + front, up);
-			GL.LoadMatrix(ref look);
-
-			GL.MatrixMode(MatrixMode.Modelview);
 
 			GL.Enable(EnableCap.DepthTest);
 
 			GL.Enable(EnableCap.Lighting);
 
-//			GL.ClearStencil(0);
-
-			GL.Viewport(0, 0, glControl.Width, glControl.Height);
+			GL.DepthRange(0.1, 1.0);
 
 			GL.MatrixMode(MatrixMode.Projection);       // 透視投影
 			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(60.0f), glControl.AspectRatio, minDistance, MaxDistance);
 			GL.LoadMatrix(ref proj);
 
-			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+			GL.MatrixMode(MatrixMode.Modelview);
+			look = Matrix4.LookAt(position, position + front, up);
+			GL.LoadMatrix(ref look);
+
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			GL.Viewport(0, 0, glControl.Width, glControl.Height);
 
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
-			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Red);
 			tube(2, 0.1f, 0.1f);
 
-			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
 			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
 			square(1.5f);
 
-			for (int n = 0; n < 10000; n++) {
+			for (int n = 0; n < 100; n++) {
 //				square(n);
 			}
 
 
 			// マップ表示
 
-
-			MapViewSize = Convert.ToInt32(glControl.Height * 0.75);
-
 			GL.Viewport(glControl.Width - 20 - MapViewSize, glControl.Height - 20 - MapViewSize, MapViewSize, MapViewSize);
+			
+			GL.DepthRange(0.0, 0.1);
 
-			GL.MatrixMode(MatrixMode.Projection);		// 平行投影
-			proj = Matrix4.CreateOrthographic(5f,5f, -10000f, 10000f);
+			GL.MatrixMode(MatrixMode.Projection);       // 平行投影
+			proj = Matrix4.CreateOrthographic(5f, 5f, -10000f, 10000f);
 			GL.LoadMatrix(ref proj);
 			GL.MatrixMode(MatrixMode.Modelview);
-
+			
 			lookMap = Matrix4.LookAt(0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f);
 			GL.LoadMatrix(ref lookMap);
 
@@ -233,10 +246,8 @@ namespace Compiler42 {
 
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
-			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
+			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Yellow);
 			square(1.5f);
-
-			
 
 			glControl.SwapBuffers();
 
@@ -415,30 +426,38 @@ namespace Compiler42 {
 		private void SetupTimer() {
 
 			var timer = new DispatcherTimer(DispatcherPriority.Normal) {
-				Interval = TimeSpan.FromSeconds(0.01),
+				Interval = TimeSpan.FromSeconds(0.001),
 			};
 
 			timer.Tick += (s, e) => {
 
 				if (this.IsActive) {
 
+					// シフトキーはスローにすべきか高速移動にすべきか
+
+					if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) {
+						ActSpeed = Speed / 10;
+					} else {
+						ActSpeed = Speed;
+					}
+
 					if (Keyboard.IsKeyDown(Key.A)) {
-						position -= Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+						position -= Vector3.Normalize(Vector3.Cross(front, up)) * ActSpeed;
 					}
 					if (Keyboard.IsKeyDown(Key.D)) {
-						position += Vector3.Normalize(Vector3.Cross(front, up)) * speed;
+						position += Vector3.Normalize(Vector3.Cross(front, up)) * ActSpeed;
 					}
 					if (Keyboard.IsKeyDown(Key.W)) {
-						position += front * speed;
+						position += front * ActSpeed;
 					}
 					if (Keyboard.IsKeyDown(Key.S)) {
-						position -= front * speed;
+						position -= front * ActSpeed;
 					}
 					if (Keyboard.IsKeyDown(Key.Up)) {
-						position += up * speed;
+						position += up * ActSpeed;
 					}
 					if (Keyboard.IsKeyDown(Key.Down)) {
-						position -= up * speed;
+						position -= up * ActSpeed;
 					}
 
 				}

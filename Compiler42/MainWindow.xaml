@@ -49,6 +49,7 @@
 					<MenuItem Header="Texture"/>
 					<MenuItem Header="Material"/>
 					<MenuItem Header="Object"/>
+					<MenuItem Header="Bot"/>
 				</MenuItem>
 				<MenuItem Header="Setting">
 					<MenuItem Header="Draw Setting..."/>
