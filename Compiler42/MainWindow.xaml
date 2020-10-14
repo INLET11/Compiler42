@@ -20,7 +20,7 @@
 	<Grid x:Name="Grid" Background="#FFDEDCDC">
 
 		<DockPanel>
-			<Menu DockPanel.Dock="Top" Background="White">
+			<Menu DockPanel.Dock="Top" Background="White" Height="18" VerticalAlignment="Top">
 				<MenuItem Header="File">
 					<MenuItem Header="New..."/>
 					<MenuItem Header="Open..."/>
@@ -67,7 +67,7 @@
 
 		</DockPanel>
 
-		<WindowsFormsHost x:Name="glHost" Margin="1,53,1,33" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
+		<WindowsFormsHost x:Name="glHost" Margin="1,53,1,26" RenderTransformOrigin="0.5,0.5" MinWidth="100" MinHeight="100" IsEnabled="False"/>
 
 		<Popup x:Name="fpsPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
 			<Label x:Name="fpsLabel" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Magenta" FontSize="15" FontFamily="Meiryo"/>
@@ -78,5 +78,8 @@
 		<Popup x:Name="CameraPop" IsOpen="True" AllowsTransparency="True" Placement="Center" PlacementTarget="{Binding ElementName=WindowsFormsHost}">
 			<Label x:Name="CameraLabel" Content="Camera mode" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Transparent" FontSize="15" FontFamily="Meiryo"/>
 		</Popup>
+
+		<Label x:Name="Label1" Content="Label1" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Red" FontSize="15" FontFamily="Meiryo" Margin="342,10,0,0" Background="White"/>
+
 	</Grid>
 </Window>

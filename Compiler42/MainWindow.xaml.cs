@@ -44,6 +44,9 @@
 
 // キューブマップ
 
+// ファイル存在確認
+// https://dobon.net/vb/dotnet/file/fileexists.html
+
 
 using System;
 using System.Collections.Generic;
@@ -72,6 +75,9 @@ using System.Windows.Media;
 
 using System.Runtime.InteropServices;
 
+using System.IO;
+using System.Xml.Serialization;
+
 namespace Compiler42 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
@@ -96,9 +102,12 @@ namespace Compiler42 {
 
 		PresentationSource MainWindowPresentationSource;
 		Matrix m;
-
+		
 
 		public MainWindow() {
+
+			var ObjectOfLoadDDS = new LoadDDS();
+
 			InitializeComponent();
 
 			SetupTimer();
@@ -109,6 +118,8 @@ namespace Compiler42 {
 //			glControl.Resize += glControl_Resize;
 			
 			glHost.Child = glControl;
+
+			ObjectOfLoadDDS.ReadDDS("Texture/404Texture_1024.dds");
 
 		}
 
@@ -160,30 +171,6 @@ namespace Compiler42 {
 
 		}
 
-		private void glControl_Resize(object sender, EventArgs e) {
-
-			GL.Viewport(0, 0, glControl.Width, glControl.Height);
-
-			GL.MatrixMode(MatrixMode.Projection);
-			proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), glControl.AspectRatio, minDistance, MaxDistance);
-			GL.LoadMatrix(ref proj);
-			GL.MatrixMode(MatrixMode.Modelview);
-
-		}
-
-		private void glControl_Paint(object sender, System.Windows.Forms.PaintEventArgs e) {
-
-			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Blue);
-			tube(2, 0.1f, 0.1f);
-
-			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Green);
-			square(1.5f);
-
-			glControl.SwapBuffers();
-
-		}
 
 		private void Draw(){
 
@@ -232,7 +219,7 @@ namespace Compiler42 {
 			GL.DepthRange(0.0, 0.1);
 
 			GL.MatrixMode(MatrixMode.Projection);       // 平行投影
-			proj = Matrix4.CreateOrthographic(5f, 5f, -10000f, 10000f);
+			proj = Matrix4.CreateOrthographic(5f, 5f, -10f, 10f);
 			GL.LoadMatrix(ref proj);
 			GL.MatrixMode(MatrixMode.Modelview);
 			
@@ -248,6 +235,10 @@ namespace Compiler42 {
 
 			GL.Material(MaterialFace.Front, MaterialParameter.Emission, Color4.Yellow);
 			square(1.5f);
+
+			for (int n = 0; n < 100; n++) {
+//				square(n);
+			}
 
 			glControl.SwapBuffers();
 
